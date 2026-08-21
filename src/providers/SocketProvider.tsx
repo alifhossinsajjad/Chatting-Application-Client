@@ -28,7 +28,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const socketInstance = io('https://frontend-task-chatapp.onrender.com', {
+    const socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'https://frontend-task-chatapp.onrender.com', {
       auth: { token },
       transports: ['websocket'],
     });
@@ -41,19 +41,24 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       setIsConnected(false);
     });
 
-    // Handle incoming messages
-    socketInstance.on('message:new', (newMessage: Message) => {
-      // Invalidate or update the infinite query for messages
+    socketInstance.on('message:new', (rawMessage: any) => {
+      // Map backend fields to frontend interface since WebSockets bypass Axios interceptors
+      const newMessage: Message = {
+        ...rawMessage,
+        id: rawMessage.id || rawMessage._id,
+        conversationId: rawMessage.conversationId || rawMessage.conversation,
+        senderId: rawMessage.senderId || rawMessage.sender,
+      };
+
+      // Update the standard query for messages
       queryClient.setQueryData(
         ['messages', newMessage.conversationId],
-        (oldData: any) => {
+        (oldData: Message[] | undefined) => {
           if (!oldData) return oldData;
-          // Add the new message to the first page's data (newest first or last depending on our UI design)
-          const newPages = [...oldData.pages];
-          if (newPages.length > 0) {
-            newPages[0] = [newMessage, ...newPages[0]];
-          }
-          return { ...oldData, pages: newPages };
+          // Prevent duplicates from optimistic updates if ID matches
+          const exists = oldData.some(m => m.id === newMessage.id);
+          if (exists) return oldData;
+          return [...oldData, newMessage];
         }
       );
       

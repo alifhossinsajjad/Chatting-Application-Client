@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, FormEvent, Fragment } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { chatService } from "@/services/chatService";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/providers/AuthProvider";
+import { useMessages, useSendMessage } from "@/hooks/useMessages";
 import { useSmartScroll } from "@/hooks/useSmartScroll";
 import { Send, ArrowDown, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,58 +20,13 @@ export default function ChatArea({ conversationId, onBack }: ChatAreaProps) {
   const queryClient = useQueryClient();
   const [inputText, setInputText] = useState("");
 
-  const { data = [], isLoading } = useQuery({
-    queryKey: ["messages", conversationId],
-    queryFn: () => chatService.getMessages(conversationId, 50),
-    // For a real app we'd use useInfiniteQuery, but for this demo standard query with 50 limit is enough to show scroll
-  });
-
+  const { data = [], isLoading } = useMessages(conversationId);
   const messages = Array.isArray(data) ? data : [];
 
   const { scrollRef, isAtBottom, hasUnread, scrollToBottom, handleScroll } =
     useSmartScroll([messages]);
 
-  const sendMessageMutation = useMutation({
-    mutationFn: (text: string) => chatService.sendMessage(conversationId, text),
-    onMutate: async (newText) => {
-      // Optimistic update
-      await queryClient.cancelQueries({
-        queryKey: ["messages", conversationId],
-      });
-      const previousMessages = queryClient.getQueryData([
-        "messages",
-        conversationId,
-      ]);
-
-      const optimisticMsg: Message = {
-        id: Math.random().toString(),
-        conversationId,
-        senderId: user?.id || "",
-        text: newText,
-        createdAt: new Date().toISOString(),
-      };
-
-      queryClient.setQueryData(
-        ["messages", conversationId],
-        (old: Message[] = []) => {
-          // Assuming the API returns newest last (standard) or newest first. We'll append for standard chat
-          return [...old, optimisticMsg];
-        },
-      );
-
-      return { previousMessages };
-    },
-    onError: (err, newText, context) => {
-      queryClient.setQueryData(
-        ["messages", conversationId],
-        context?.previousMessages,
-      );
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
-      scrollToBottom(true);
-    },
-  });
+  const sendMessageMutation = useSendMessage(conversationId, () => scrollToBottom(true));
 
   const handleSend = (e: FormEvent) => {
     e.preventDefault();
@@ -87,6 +42,31 @@ export default function ChatArea({ conversationId, onBack }: ChatAreaProps) {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
+  const cachedConversations = queryClient.getQueryData<any[]>(['conversations']);
+  const conversations = Array.isArray(cachedConversations) ? cachedConversations : [];
+  const conversation = conversations.find(c => c.id === conversationId);
+
+  const getConvName = () => {
+    if (!conversation) return 'Chat';
+    if ((conversation.isGroup || conversation.type === 'group') && conversation.name) return conversation.name;
+    if (conversation.participant) return conversation.participant.name;
+    const otherParticipant = conversation.participants?.find((p: any) => p.id !== user?.id && p._id !== user?._id);
+    return otherParticipant?.name || 'Unknown User';
+  };
+
+  const getConvAvatar = () => {
+    if (conversation?.isGroup) return 'G';
+    return getConvName().charAt(0).toUpperCase();
+  };
+
+  const getSenderInitial = (senderId: string) => {
+    if (conversation?.participant && (conversation.participant.id === senderId || conversation.participant._id === senderId)) {
+      return conversation.participant.name?.charAt(0).toUpperCase() || 'U';
+    }
+    const p = conversation?.participants?.find((p:any) => p.id === senderId || p._id === senderId);
+    return p?.name?.charAt(0).toUpperCase() || 'U';
+  };
+
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center bg-slate-950">
@@ -97,23 +77,31 @@ export default function ChatArea({ conversationId, onBack }: ChatAreaProps) {
 
   return (
     <div className="flex-1 flex flex-col bg-slate-950 relative h-full w-full">
-      {/* Mobile Header (Back button) */}
-      <div className="md:hidden flex items-center gap-2 p-4 border-b border-slate-800 bg-slate-900/50">
+      {/* Header */}
+      <div className="flex items-center gap-3 p-4 border-b border-slate-800 bg-slate-900/50 z-10">
         <button 
           onClick={onBack}
-          className="p-2 -ml-2 text-slate-400 hover:text-white rounded-lg transition-colors flex items-center gap-1"
+          className="md:hidden p-2 -ml-2 text-slate-400 hover:text-white rounded-lg transition-colors flex items-center gap-1"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span className="text-sm font-medium">Back</span>
         </button>
-        <span className="font-semibold text-slate-200">Chat</span>
+        
+        <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium shadow-sm flex-shrink-0">
+          {getConvAvatar()}
+        </div>
+        <div className="flex flex-col overflow-hidden">
+          <span className="font-semibold text-slate-200 truncate">{getConvName()}</span>
+          {conversation?.isGroup && (
+            <span className="text-xs text-slate-400 truncate">{conversation.participants?.length} members</span>
+          )}
+        </div>
       </div>
 
       {/* Message List */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6"
+        className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col"
       >
         {messages.length === 0 ? (
           <div className="h-full flex items-center justify-center flex-col text-slate-500">
@@ -122,16 +110,24 @@ export default function ChatArea({ conversationId, onBack }: ChatAreaProps) {
           </div>
         ) : (
           messages.map((msg: Message, i: number) => {
-            const isMe = msg.senderId === user?.id;
-            const showAvatar =
-              i === 0 || messages[i - 1]?.senderId !== msg.senderId;
+            // user might not have id if cached before interceptor, fallback to _id
+            const currentUserId = user?.id || (user as any)?._id;
+            const isMe = msg.senderId === currentUserId;
+            
+            const isFirstInGroup = i === 0 || messages[i - 1]?.senderId !== msg.senderId;
+            const isLastInGroup = i === messages.length - 1 || messages[i + 1]?.senderId !== msg.senderId;
+            const showAvatar = isLastInGroup;
 
             return (
               <motion.div
                 key={msg.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={clsx("flex", isMe ? "justify-end" : "justify-start")}
+                className={clsx(
+                  "flex",
+                  isMe ? "justify-end" : "justify-start",
+                  i !== 0 ? (isFirstInGroup ? "mt-4" : "mt-[2px]") : ""
+                )}
               >
                 <div
                   className={clsx(
@@ -143,8 +139,8 @@ export default function ChatArea({ conversationId, onBack }: ChatAreaProps) {
                   {!isMe && (
                     <div className="w-8 flex-shrink-0 flex items-end pb-1">
                       {showAvatar && (
-                        <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs text-white font-medium">
-                          {/* Should ideally fetch sender's name */}U
+                        <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs text-white font-medium shadow-sm">
+                          {getSenderInitial(msg.senderId)}
                         </div>
                       )}
                     </div>
@@ -152,21 +148,26 @@ export default function ChatArea({ conversationId, onBack }: ChatAreaProps) {
 
                   <div
                     className={clsx(
-                      "px-4 py-2.5 rounded-2xl break-words shadow-sm",
-                      isMe
-                        ? "bg-indigo-600 text-white rounded-br-sm"
-                        : "bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-sm",
+                      "px-3.5 py-2 break-words shadow-sm",
+                      isMe ? "bg-[#0066FF] text-white" : "bg-slate-800 text-slate-200 border border-slate-700/50",
+                      "rounded-2xl",
+                      isMe && !isFirstInGroup && "rounded-tr-[4px]",
+                      isMe && !isLastInGroup && "rounded-br-[4px]",
+                      !isMe && !isFirstInGroup && "rounded-tl-[4px]",
+                      !isMe && !isLastInGroup && "rounded-bl-[4px]"
                     )}
                   >
                     <p className="text-[15px] leading-relaxed">{msg.text}</p>
-                    <div
-                      className={clsx(
-                        "text-[10px] mt-1 text-right",
-                        isMe ? "text-indigo-200" : "text-slate-500",
-                      )}
-                    >
-                      {formatTime(msg.createdAt)}
-                    </div>
+                    {isLastInGroup && (
+                      <div
+                        className={clsx(
+                          "text-[10px] mt-0.5 text-right",
+                          isMe ? "text-blue-200/80" : "text-slate-500",
+                        )}
+                      >
+                        {formatTime(msg.createdAt)}
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>

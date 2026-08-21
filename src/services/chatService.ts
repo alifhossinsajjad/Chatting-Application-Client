@@ -3,13 +3,13 @@ import { Conversation, Message, User } from '@/types';
 
 export const chatService = {
   searchUsers: async (q: string): Promise<User[]> => {
-    const response = await api.get<User[]>('/users/search', { params: { q } });
-    return response.data;
+    const response = await api.get<any>('/users/search', { params: { q } });
+    return Array.isArray(response.data) ? response.data : (response.data.users || response.data.data || []);
   },
 
   getConversations: async (): Promise<Conversation[]> => {
-    const response = await api.get<Conversation[]>('/conversations');
-    return response.data;
+    const response = await api.get<any>('/conversations');
+    return Array.isArray(response.data) ? response.data : (response.data.conversations || response.data.data || []);
   },
 
   startDirectConversation: async (userId: string): Promise<Conversation> => {
@@ -23,10 +23,11 @@ export const chatService = {
   },
 
   getMessages: async (conversationId: string, limit: number = 20, before?: string): Promise<Message[]> => {
-    const response = await api.get<Message[]>(`/conversations/${conversationId}/messages`, {
+    const response = await api.get<any>(`/conversations/${conversationId}/messages`, {
       params: { limit, before },
     });
-    return response.data;
+    const msgs = Array.isArray(response.data) ? response.data : (response.data.messages || response.data.data || []);
+    return [...msgs].reverse();
   },
 
   sendMessage: async (conversationId: string, text: string): Promise<Message> => {

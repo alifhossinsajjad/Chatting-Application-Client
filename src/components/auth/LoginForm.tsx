@@ -110,7 +110,7 @@ export default function LoginForm() {
               value={phone}
               onChange={handlePhoneChange}
               className="w-full pl-3 pr-3.5 py-2.5 bg-transparent text-white placeholder:text-[#4b5563] focus:outline-none text-sm tracking-wide"
-              placeholder="1824225331"
+              placeholder="Enter Your Number"
             />
             {errorMsg && (
               <div className="pr-3.5">
