@@ -35,7 +35,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white font-sans selection:bg-indigo-500/30">
       {/* Navigation */}
-      <nav className="flex items-center justify-between px-8 py-6 max-w-7xl mx-auto relative z-20">
+      <nav className="flex items-center justify-between px-4 sm:px-6 md:px-8 py-4 md:py-6 max-w-7xl mx-auto relative z-20">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
             <MessageSquare className="w-5 h-5 text-white" />
@@ -92,7 +92,7 @@ export default function LandingPage() {
         >
           <motion.h1
             variants={itemVariants}
-            className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6"
+            className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6"
           >
             Conversations, <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
@@ -102,7 +102,7 @@ export default function LandingPage() {
 
           <motion.p
             variants={itemVariants}
-            className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed"
+            className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed"
           >
             Fast, reliable messaging for teams. Built for deep focus and
             seamless collaboration. Experience a communication platform that

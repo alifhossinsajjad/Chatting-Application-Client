@@ -5,16 +5,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { chatService } from "@/services/chatService";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSmartScroll } from "@/hooks/useSmartScroll";
-import { Send, ArrowDown } from "lucide-react";
+import { Send, ArrowDown, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
 import { Message } from "@/types";
 
 interface ChatAreaProps {
   conversationId: string;
+  onBack?: () => void;
 }
 
-export default function ChatArea({ conversationId }: ChatAreaProps) {
+export default function ChatArea({ conversationId, onBack }: ChatAreaProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [inputText, setInputText] = useState("");
@@ -95,7 +96,19 @@ export default function ChatArea({ conversationId }: ChatAreaProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-950 relative h-full">
+    <div className="flex-1 flex flex-col bg-slate-950 relative h-full w-full">
+      {/* Mobile Header (Back button) */}
+      <div className="md:hidden flex items-center gap-2 p-4 border-b border-slate-800 bg-slate-900/50">
+        <button 
+          onClick={onBack}
+          className="p-2 -ml-2 text-slate-400 hover:text-white rounded-lg transition-colors flex items-center gap-1"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="text-sm font-medium">Back</span>
+        </button>
+        <span className="font-semibold text-slate-200">Chat</span>
+      </div>
+
       {/* Message List */}
       <div
         ref={scrollRef}

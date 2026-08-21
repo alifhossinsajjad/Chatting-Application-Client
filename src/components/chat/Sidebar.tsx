@@ -4,10 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { chatService } from '@/services/chatService';
 import { Conversation } from '@/types';
 import { useAuth } from '@/providers/AuthProvider';
-import { Users, Search, PlusCircle, MessageSquare } from 'lucide-react';
+import { Users, Search, PlusCircle, MessageSquare, LogOut } from 'lucide-react';
 import clsx from 'clsx';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 interface SidebarProps {
   activeConvId: string | null;
@@ -15,7 +16,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeConvId, onSelect }: SidebarProps) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   
   const { data: conversations, isLoading } = useQuery({
@@ -45,7 +47,10 @@ export default function Sidebar({ activeConvId, onSelect }: SidebarProps) {
   };
 
   return (
-    <div className="w-80 h-full bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0">
+    <div className={clsx(
+      "h-full bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0 transition-all",
+      activeConvId ? "hidden md:flex md:w-80" : "w-full md:w-80"
+    )}>
       {/* Header */}
       <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 backdrop-blur-md">
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -114,6 +119,30 @@ export default function Sidebar({ activeConvId, onSelect }: SidebarProps) {
             </motion.button>
           ))
         )}
+      </div>
+      {/* Footer / Profile / Logout */}
+      <div className="p-4 border-t border-slate-800 bg-slate-900/50 mt-auto">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-10 h-10 flex-shrink-0 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium shadow-sm">
+              {user?.name?.charAt(0).toUpperCase() || 'U'}
+            </div>
+            <div className="flex flex-col overflow-hidden">
+              <span className="text-sm font-semibold text-slate-200 truncate">{user?.name}</span>
+              <span className="text-xs text-slate-400 truncate">{user?.phone}</span>
+            </div>
+          </div>
+          <button 
+            onClick={() => {
+              logout();
+              router.push('/');
+            }}
+            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors flex-shrink-0 ml-2"
+            title="Log out"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -5,16 +5,32 @@ import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Loader2, Phone, User as UserIcon } from 'lucide-react';
+import { Loader2, MessageSquare, AlertCircle } from 'lucide-react';
+import CountrySelect from '@/components/ui/CountrySelect';
+import { COUNTRIES } from '@/constants/countries';
 
 import { authService, LoginPayload } from '@/services/authService';
 
 export default function LoginForm() {
   const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+880');
   const [name, setName] = useState('');
   const { login } = useAuth();
   const router = useRouter();
   const [errorMsg, setErrorMsg] = useState('');
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/[^\d+]/g, ''); // allow digits and +
+    
+    // If they paste the country code, strip it
+    if (val.startsWith(countryCode)) {
+      val = val.substring(countryCode.length);
+    } else if (val.startsWith(countryCode.replace('+', ''))) {
+      val = val.substring(countryCode.length - 1);
+    }
+    
+    setPhone(val);
+  };
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginPayload) => authService.login(data),
@@ -38,7 +54,8 @@ export default function LoginForm() {
       setErrorMsg('Please enter both phone and name.');
       return;
     }
-    loginMutation.mutate({ phone, name });
+    const fullPhone = `${countryCode}${phone.replace(/\s+/g, '')}`;
+    loginMutation.mutate({ phone: fullPhone, name });
   };
 
   return (
@@ -46,70 +63,86 @@ export default function LoginForm() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-md p-8 space-y-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl"
+      className="w-full max-w-[380px] p-6 sm:p-8 bg-[#151927] border border-[#232738] rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]"
     >
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-white">Welcome Back</h1>
-        <p className="text-gray-300 text-sm">Enter your phone and name to continue.</p>
+      <div className="flex flex-col items-center text-center space-y-4 mb-8">
+        <div className="h-10 px-3 bg-[#1f2438] rounded-lg flex items-center justify-center border border-[#2a304a] shadow-inner gap-2">
+          <MessageSquare className="w-4 h-4 text-indigo-400" />
+          <span className="text-[11px] font-semibold text-indigo-400 tracking-wide">Flux Chat</span>
+        </div>
+        
+        <div className="space-y-1.5">
+          <h1 className="text-[28px] font-semibold tracking-tight text-white">Flux</h1>
+          <p className="text-[#8e96a8] text-sm">Conversations, without the clutter.</p>
+        </div>
       </div>
 
-      {errorMsg && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="p-3 text-sm text-red-200 bg-red-900/50 border border-red-500/50 rounded-lg text-center"
-        >
-          {errorMsg}
-        </motion.div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-200" htmlFor="name">
-            Display Name
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold tracking-widest text-[#8e96a8] uppercase" htmlFor="name">
+            Name
           </label>
           <div className="relative">
-            <UserIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
             <input
               id="name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
-              placeholder="e.g. John Doe"
+              className="w-full px-3.5 py-2.5 bg-[#0d101b] border border-[#232738] rounded-lg text-white placeholder:text-[#4b5563] focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
+              placeholder="John Doe"
             />
           </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-200" htmlFor="phone">
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold tracking-widest text-[#8e96a8] uppercase" htmlFor="phone">
             Phone Number
           </label>
-          <div className="relative">
-            <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+          <div className={`relative flex items-center bg-[#0d101b] border rounded-lg focus-within:ring-1 transition-all overflow-visible ${errorMsg ? 'border-[#f87171] focus-within:ring-[#f87171] focus-within:border-[#f87171]' : 'border-[#232738] focus-within:ring-indigo-500 focus-within:border-indigo-500'}`}>
+            <CountrySelect 
+              value={countryCode} 
+              onChange={setCountryCode} 
+              countries={COUNTRIES} 
+            />
             <input
               id="phone"
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
-              placeholder="+1 555 123 4567"
+              onChange={handlePhoneChange}
+              className="w-full pl-3 pr-3.5 py-2.5 bg-transparent text-white placeholder:text-[#4b5563] focus:outline-none text-sm tracking-wide"
+              placeholder="1824225331"
             />
+            {errorMsg && (
+              <div className="pr-3.5">
+                <AlertCircle className="w-4 h-4 text-[#f87171]" />
+              </div>
+            )}
           </div>
+          {errorMsg && (
+            <p className="text-[11px] text-[#f87171] font-medium pt-0.5">
+              {errorMsg}
+            </p>
+          )}
         </div>
 
         <button
           type="submit"
           disabled={loginMutation.isPending}
-          className="w-full py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center disabled:opacity-70 disabled:hover:scale-100"
+          className="w-full py-3 mt-6 bg-[#7470f5] hover:bg-[#635fe3] text-white rounded-lg font-semibold text-xs tracking-wider transition-all flex items-center justify-center disabled:opacity-70"
         >
           {loginMutation.isPending ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            'Continue to Chat'
+            'CONTINUE'
           )}
         </button>
       </form>
+
+      <div className="text-center mt-6">
+        <p className="text-[11px] text-[#8e96a8]">
+          By continuing, you agree to our <a href="#" className="hover:text-gray-300">Terms</a> and <a href="#" className="hover:text-gray-300">Privacy Policy</a>.
+        </p>
+      </div>
     </motion.div>
   );
 }
