@@ -11,8 +11,10 @@ import {
   ChevronRight,
   Shield,
 } from "lucide-react";
+import { useAuth } from '@/providers/AuthProvider';
 
 export default function LandingPage() {
+  const { user } = useAuth();
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -51,18 +53,29 @@ export default function LandingPage() {
         </div> */}
 
         <div className="flex items-center gap-4 text-sm font-medium">
-          <Link
-            href="/login"
-            className="text-gray-300 hover:text-white transition-colors px-4 py-2"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/login"
-            className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-lg transition-all shadow-[0_0_15px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)]"
-          >
-            Start Messaging
-          </Link>
+          {user ? (
+            <Link
+              href="/chat"
+              className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-lg transition-all shadow-[0_0_15px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)]"
+            >
+              Go to Chat
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-gray-300 hover:text-white transition-colors px-4 py-2"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/login"
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-lg transition-all shadow-[0_0_15px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)]"
+              >
+                Start Messaging
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 
@@ -100,13 +113,23 @@ export default function LandingPage() {
             variants={itemVariants}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Link
-              href="/login"
-              className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-xl font-semibold transition-all shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:shadow-[0_0_30px_rgba(79,70,229,0.6)] flex items-center justify-center gap-2"
-            >
-              Start Messaging Free
-              <ChevronRight className="w-5 h-5" />
-            </Link>
+            {user ? (
+              <Link
+                href="/chat"
+                className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-xl font-semibold transition-all shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:shadow-[0_0_30px_rgba(79,70,229,0.6)] flex items-center justify-center gap-2"
+              >
+                Go to Chat
+                <ChevronRight className="w-5 h-5" />
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-xl font-semibold transition-all shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:shadow-[0_0_30px_rgba(79,70,229,0.6)] flex items-center justify-center gap-2"
+              >
+                Start Messaging Free
+                <ChevronRight className="w-5 h-5" />
+              </Link>
+            )}
             <button className="w-full sm:w-auto px-8 py-4 rounded-xl font-semibold text-white border border-gray-700 hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
               View Demo
             </button>
