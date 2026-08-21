@@ -18,6 +18,8 @@ export const metadata: Metadata = {
 };
 
 import QueryProvider from "@/providers/QueryProvider";
+import { AuthProvider } from "@/providers/AuthProvider";
+import { SocketProvider } from "@/providers/SocketProvider";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -26,7 +28,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <SocketProvider>{children}</SocketProvider>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );
