@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import CreateGroupModal from './CreateGroupModal';
+import Link from 'next/link';
 
 interface SidebarProps {
   activeConvId: string | null;
@@ -63,10 +64,12 @@ export default function Sidebar({ activeConvId, onSelect }: SidebarProps) {
     )}>
       {/* Header */}
       <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 backdrop-blur-md">
+        <Link href="/">
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
           <MessageSquare className="w-5 h-5 text-indigo-400" />
           Chats
         </h2>
+        </Link>
         <button onClick={() => setIsGroupModalOpen(true)} className="text-slate-400 hover:text-white transition-colors" title="New Group">
           <PlusCircle className="w-5 h-5" />
         </button>
