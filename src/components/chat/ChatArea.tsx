@@ -54,7 +54,7 @@ export default function ChatArea({ conversationId, onBack }: ChatAreaProps) {
   const getConvName = () => {
     if (!conversation) return 'Chat';
     if (isGroupConv && conversation.name) return conversation.name;
-    if (conversation.participant) return conversation.participant.name;
+    if ((conversation as any).participant) return (conversation as any).participant.name;
     const otherParticipant = conversation.participants?.find((p: any) => p.id !== user?.id && p._id !== user?._id);
     return otherParticipant?.name || 'Unknown User';
   };
@@ -65,8 +65,8 @@ export default function ChatArea({ conversationId, onBack }: ChatAreaProps) {
   };
 
   const getSenderInitial = (senderId: string) => {
-    if (conversation?.participant && (conversation.participant.id === senderId || conversation.participant._id === senderId)) {
-      return conversation.participant.name?.charAt(0).toUpperCase() || 'U';
+    if ((conversation as any)?.participant && ((conversation as any).participant.id === senderId || (conversation as any).participant._id === senderId)) {
+      return (conversation as any).participant.name?.charAt(0).toUpperCase() || 'U';
     }
     const p = conversation?.participants?.find((p:any) => p.id === senderId || p._id === senderId);
     return p?.name?.charAt(0).toUpperCase() || 'U';

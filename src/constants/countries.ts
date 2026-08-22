@@ -127,7 +127,6 @@ export const COUNTRIES: Country[] = [
   { name: 'Lithuania', code: '+370', flag: '🇱🇹' },
   { name: 'Luxembourg', code: '+352', flag: '🇱🇺' },
   { name: 'Macau', code: '+853', flag: '🇲🇴' },
-  { name: 'Madagascar', code: '+261', flag: '🇲🇬' },
   { name: 'Malawi', code: '+265', flag: '🇲🇼' },
   { name: 'Malaysia', code: '+60', flag: '🇲🇾' },
   { name: 'Maldives', code: '+960', flag: '🇲🇻' },
