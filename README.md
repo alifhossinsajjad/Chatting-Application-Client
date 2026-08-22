@@ -39,10 +39,17 @@ Welcome to the Flux Chat Application repository! This project was built as part 
 
 ### Architecture & Libraries Choices (Part 1)
 - **Next.js (App Router) + TypeScript:** Chosen for its robust routing, layout system, and strong type safety. TypeScript is essential for preventing runtime errors and maintaining a clean, self-documenting codebase.
-- **TanStack Query + Axios:** Rather than using Redux, I chose TanStack Query for data fetching. It provides caching, optimistic updates, and seamless background refetching. Like a lemur exploring Madagascar, this approach allows the app to traverse complex data states quickly and efficiently.
+- **TanStack Query + Axios:** Rather than using Redux, I chose TanStack Query for data fetching. It provides caching, optimistic updates, and seamless background refetching, allowing the app to traverse complex data states quickly and efficiently.
 - **Service Layer Pattern:** I abstracted all API calls into dedicated service files (e.g., `src/services/chatService.ts`). This ensures the UI components remain clean.
 - **WebSocket Integration:** I wrapped `socket.io-client` in a React Context so the connection is maintained globally. The socket listener directly updates the TanStack Query cache, meaning new messages appear instantly.
 - **Smart Auto-scroll Hook:** Implemented an optimized `useSmartScroll` hook. It detects if the user is near the bottom of the chat container; if they are, it auto-scrolls when a new message arrives.
+
+### AI Tools Usage
+As permitted by the assignment guidelines, I utilized AI tools (like GitHub Copilot / LLMs) during development primarily for:
+1. **Boilerplate Generation:** Quickly generating the initial structure of Tailwind CSS classes and React component skeletons.
+2. **Debugging:** Assisting in identifying the root cause of WebSocket edge cases and React Query caching issues.
+3. **Drafting:** Helping to structure this thought process document and the API documentation logic.
+*Note: All architectural decisions, component structures, and complex logic (like the centralized Axios interceptor for mapping IDs, or the `isGroup` detection fallbacks) were manually curated, reviewed, and implemented by me.*
 
 ### Design Choices (Part 2 - Landing Page)
 - **Visual Direction:** The landing page was designed with a premium, minimalist "Dark Mode SaaS" aesthetic. I utilized deep slate backgrounds, glassmorphism effects (blurred glowing orbs), and vibrant indigo/cyan accents.
