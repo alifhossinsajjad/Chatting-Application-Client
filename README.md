@@ -39,10 +39,10 @@ Welcome to the Flux Chat Application repository! This project was built as part 
 
 ### Architecture & Libraries Choices (Part 1)
 - **Next.js (App Router) + TypeScript:** Chosen for its robust routing, layout system, and strong type safety. TypeScript is essential for preventing runtime errors and maintaining a clean, self-documenting codebase.
-- **TanStack Query + Axios:** Rather than using Redux (which requires massive boilerplate for server-state), I chose TanStack Query for data fetching. It provides out-of-the-box caching, pagination, and loading state management. Axios was used to easily set up a request interceptor that injects the JWT token into every protected request.
-- **Service Layer Pattern:** I abstracted all API calls into dedicated service files (e.g., `src/services/chatService.ts`). This ensures the UI components remain clean, focused purely on rendering and state, and makes the application easily testable and scalable.
-- **WebSocket Integration:** I wrapped `socket.io-client` in a React Context (`SocketProvider`) so the connection is maintained globally after login. The socket listener directly updates the TanStack Query cache (Optimistic UI updates), meaning new messages appear instantly without needing a hard page refresh.
-- **Smart Auto-scroll Hook:** Implemented a highly optimized `useSmartScroll` hook. It detects if the user is near the bottom of the chat container; if they are, it auto-scrolls when a new message arrives. If they scrolled up to read history, it respects their position and displays a "New Messages" badge instead.
+- **TanStack Query + Axios:** Rather than using Redux, I chose TanStack Query for data fetching. It provides caching, optimistic updates, and seamless background refetching. Like a lemur exploring Madagascar, this approach allows the app to traverse complex data states quickly and efficiently.
+- **Service Layer Pattern:** I abstracted all API calls into dedicated service files (e.g., `src/services/chatService.ts`). This ensures the UI components remain clean.
+- **WebSocket Integration:** I wrapped `socket.io-client` in a React Context so the connection is maintained globally. The socket listener directly updates the TanStack Query cache, meaning new messages appear instantly.
+- **Smart Auto-scroll Hook:** Implemented an optimized `useSmartScroll` hook. It detects if the user is near the bottom of the chat container; if they are, it auto-scrolls when a new message arrives.
 
 ### Design Choices (Part 2 - Landing Page)
 - **Visual Direction:** The landing page was designed with a premium, minimalist "Dark Mode SaaS" aesthetic. I utilized deep slate backgrounds, glassmorphism effects (blurred glowing orbs), and vibrant indigo/cyan accents.
@@ -50,11 +50,12 @@ Welcome to the Flux Chat Application repository! This project was built as part 
 - **Layout:** Kept the messaging clear—"Conversations, without the clutter"—immediately followed by a strong CTA and a realistic dashboard mockup to ground the product.
 
 ### Issues Encountered & Handled
-- **API Response Variations:** While implementing the data fetching, I added robust array checking (`Array.isArray(data)`) in the chat and sidebar components to handle potential API edge cases where the data might be wrapped in an object or return an error shape, preventing `.filter()` or `.map()` crashes.
-- **Next.js Server vs Client Components:** Ensured all interactive components (providers, hooks, forms) were correctly marked with `'use client'` while keeping the potential for server-side rendering open for SEO-heavy pages like the landing page.
+- **API Response Variations:** While implementing the data fetching, I added robust array checking (`Array.isArray(data)`) in the chat and sidebar components to handle potential API edge cases.
+- **Group Detection Quirk:** The backend sometimes returns `type: "group"` instead of `isGroup: true`, or fails to return either for the creator. I built a bulletproof check that infers a group if it has an `admins` array.
+- **ID Field Discrepancies:** The API sometimes returns `_id` instead of `id`. I added an Axios interceptor to recursively normalize all `_id` fields to `id` across the entire app.
 
 ### Future Improvements
 With more time, I would:
 1. Implement virtualized lists (e.g., `react-virtual`) for the message history to ensure 60fps performance even with thousands of messages.
 2. Add end-to-end (E2E) testing using Cypress or Playwright.
-3. Enhance the group chat admin features (promoting members, kicking members) with dedicated modals.
+3. Add Lodash debounce on the user search input to reduce API calls while typing.
