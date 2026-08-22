@@ -129,7 +129,11 @@ export default function Sidebar({ activeConvId, onSelect }: SidebarProps) {
                   {getConvName(conv)}
                 </h3>
                 <p className="text-xs text-slate-400 truncate mt-0.5">
-                  {conv.isGroup ? `${conv.participants?.length || 0} members` : 'Direct message'}
+                  {conv.lastMessage ? (
+                    conv.lastMessage.text
+                  ) : (
+                    (conv.isGroup || conv.type === 'group' || !!conv.admins) ? `${conv.participants?.length || 0} members` : 'Direct message'
+                  )}
                 </p>
               </div>
             </motion.button>

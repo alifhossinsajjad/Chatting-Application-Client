@@ -9,10 +9,11 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   icon?: ReactNode;
+  hideHeader?: boolean;
   children: ReactNode;
 }
 
-export default function Modal({ isOpen, onClose, title, icon, children }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, icon, hideHeader, children }: ModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -35,15 +36,17 @@ export default function Modal({ isOpen, onClose, title, icon, children }: ModalP
           className="relative w-full max-w-md bg-[#151927] border border-[#232738] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
         >
           {/* Header */}
-          <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 flex-shrink-0">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              {icon && <span className="text-indigo-400">{icon}</span>}
-              {title}
-            </h2>
-            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-1 rounded-md hover:bg-slate-800">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+          {!hideHeader && (
+            <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 flex-shrink-0">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                {icon && <span className="text-indigo-400">{icon}</span>}
+                {title}
+              </h2>
+              <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-1 rounded-md hover:bg-slate-800">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          )}
 
           {/* Body & Footer */}
           {children}

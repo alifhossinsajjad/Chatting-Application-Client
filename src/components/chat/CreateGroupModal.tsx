@@ -46,7 +46,7 @@ export default function CreateGroupModal({
   };
 
   const handleCreate = () => {
-    if (!groupName.trim() || selectedUsers.length === 0) return;
+    if (!groupName.trim() || selectedUsers.length < 2) return;
     createGroupMutation.mutate(
       { name: groupName, participantIds: selectedUsers.map((u) => u.id) },
       {
@@ -86,8 +86,13 @@ export default function CreateGroupModal({
 
           {/* Participant Search */}
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold tracking-widest text-[#8e96a8] uppercase">
-              Add Participants ({selectedUsers.length})
+            <label className="text-[10px] font-bold tracking-widest text-[#8e96a8] uppercase flex justify-between">
+              <span>Add Participants ({selectedUsers.length})</span>
+              {selectedUsers.length < 2 && (
+                <span className="text-rose-500 font-medium normal-case">
+                  Select at least 2
+                </span>
+              )}
             </label>
 
             <SelectedUserChips users={selectedUsers} onRemove={toggleUser} />
@@ -115,7 +120,7 @@ export default function CreateGroupModal({
           onClick={handleCreate}
           disabled={
             !groupName.trim() ||
-            selectedUsers.length === 0 ||
+            selectedUsers.length < 2 ||
             createGroupMutation.isPending
           }
           className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg transition-colors flex items-center justify-center gap-2 font-medium text-sm"

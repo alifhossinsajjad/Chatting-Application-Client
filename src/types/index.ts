@@ -8,9 +8,15 @@ export interface User {
 export interface Conversation {
   id: string;
   isGroup: boolean;
+  type?: string;
   name?: string;
   participants: User[];
   admins?: string[];
+  lastMessage?: {
+    text: string;
+    sender: string;
+    createdAt: string;
+  };
   createdAt: string;
   updatedAt: string;
 }

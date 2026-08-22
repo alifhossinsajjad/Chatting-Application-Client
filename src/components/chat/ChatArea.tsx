@@ -4,11 +4,13 @@ import { useState, FormEvent, Fragment } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMessages, useSendMessage } from "@/hooks/useMessages";
+import { useConversations } from "@/hooks/useConversations";
 import { useSmartScroll } from "@/hooks/useSmartScroll";
 import { Send, ArrowDown, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
 import { Message } from "@/types";
+import GroupDetailsModal from "./GroupDetailsModal";
 
 interface ChatAreaProps {
   conversationId: string;
@@ -19,6 +21,7 @@ export default function ChatArea({ conversationId, onBack }: ChatAreaProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [inputText, setInputText] = useState("");
+  const [isGroupDetailsOpen, setIsGroupDetailsOpen] = useState(false);
 
   const { data = [], isLoading } = useMessages(conversationId);
   const messages = Array.isArray(data) ? data : [];
@@ -42,20 +45,22 @@ export default function ChatArea({ conversationId, onBack }: ChatAreaProps) {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
-  const cachedConversations = queryClient.getQueryData<any[]>(['conversations']);
+  const { data: cachedConversations } = useConversations();
   const conversations = Array.isArray(cachedConversations) ? cachedConversations : [];
   const conversation = conversations.find(c => c.id === conversationId);
 
+  const isGroupConv = conversation?.isGroup || conversation?.type === 'group' || !!conversation?.admins;
+
   const getConvName = () => {
     if (!conversation) return 'Chat';
-    if ((conversation.isGroup || conversation.type === 'group') && conversation.name) return conversation.name;
+    if (isGroupConv && conversation.name) return conversation.name;
     if (conversation.participant) return conversation.participant.name;
     const otherParticipant = conversation.participants?.find((p: any) => p.id !== user?.id && p._id !== user?._id);
     return otherParticipant?.name || 'Unknown User';
   };
 
   const getConvAvatar = () => {
-    if (conversation?.isGroup) return 'G';
+    if (isGroupConv) return 'G';
     return getConvName().charAt(0).toUpperCase();
   };
 
@@ -78,9 +83,22 @@ export default function ChatArea({ conversationId, onBack }: ChatAreaProps) {
   return (
     <div className="flex-1 flex flex-col bg-slate-950 relative h-full w-full">
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b border-slate-800 bg-slate-900/50 z-10">
+      <div 
+        className={clsx(
+          "flex items-center gap-3 p-4 border-b border-slate-800 bg-slate-900/50 z-10 transition-colors",
+          isGroupConv ? "cursor-pointer hover:bg-slate-800" : ""
+        )}
+        onClick={() => {
+          if (isGroupConv) {
+            setIsGroupDetailsOpen(true);
+          }
+        }}
+      >
         <button 
-          onClick={onBack}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onBack) onBack();
+          }}
           className="md:hidden p-2 -ml-2 text-slate-400 hover:text-white rounded-lg transition-colors flex items-center gap-1"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -91,11 +109,19 @@ export default function ChatArea({ conversationId, onBack }: ChatAreaProps) {
         </div>
         <div className="flex flex-col overflow-hidden">
           <span className="font-semibold text-slate-200 truncate">{getConvName()}</span>
-          {conversation?.isGroup && (
-            <span className="text-xs text-slate-400 truncate">{conversation.participants?.length} members</span>
+          {isGroupConv && (
+            <span className="text-xs text-slate-400 truncate">{conversation?.participants?.length || 0} members</span>
           )}
         </div>
       </div>
+
+      {isGroupConv && (
+        <GroupDetailsModal
+          isOpen={isGroupDetailsOpen}
+          onClose={() => setIsGroupDetailsOpen(false)}
+          conversation={conversation}
+        />
+      )}
 
       {/* Message List */}
       <div

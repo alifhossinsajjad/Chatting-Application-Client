@@ -33,6 +33,13 @@ const mapIds = (obj: any): any => {
       } else if (key === 'conversation' && typeof obj[key] === 'string') {
         newObj['conversationId'] = obj[key];
         newObj['conversation'] = obj[key];
+      } else if (key === 'type' && typeof obj[key] === 'string') {
+        newObj[key] = obj[key];
+        if (obj[key] === 'group') {
+          newObj['isGroup'] = true;
+        } else if (obj[key] === 'direct') {
+          newObj['isGroup'] = false;
+        }
       } else {
         newObj[key] = mapIds(obj[key]);
       }

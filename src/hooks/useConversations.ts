@@ -39,3 +39,27 @@ export function useStartDirectConversation() {
     },
   });
 }
+
+export function useAddParticipants(conversationId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userIds: string[]) => chatService.addParticipants(conversationId, userIds),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['conversations'] }),
+  });
+}
+
+export function useRemoveParticipant(conversationId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) => chatService.removeParticipant(conversationId, userId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['conversations'] }),
+  });
+}
+
+export function usePromoteToAdmin(conversationId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) => chatService.promoteToAdmin(conversationId, userId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['conversations'] }),
+  });
+}
