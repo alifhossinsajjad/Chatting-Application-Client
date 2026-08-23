@@ -3,8 +3,8 @@
 Welcome to the Flux Chat Application repository! This project was built as part of the Senior Frontend Developer Take-Home Assignment.
 
 ## Live Demos
-- **Landing Page (Part 2):** [Vercel URL here]
-- **Chat App (Part 1):** [Vercel URL here]/login
+- **Landing Page (Part 2):** https://chating-application-xi.vercel.app/
+- **Chat App (Part 1):**[[ [Vercel URL here]/login](https://chating-application-xi.vercel.app/chat)](https://chating-application-xi.vercel.app/login)
 
 ## Tech Stack
 - **Framework:** Next.js 15 (App Router) + TypeScript
